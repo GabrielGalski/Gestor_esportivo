@@ -1,12 +1,6 @@
--- ==========================================================================
--- SISTEMA DE GERENCIAMENTO DE CONTAS - Gabriel Galski Machado
--- ==========================================================================
-
 DROP DATABASE IF EXISTS gestao_clube;
 CREATE DATABASE gestao_clube CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE gestao_clube;
-
-SET NAMES utf8mb4;
 
 -- ============================================
 -- TABELAS PRINCIPAIS
@@ -262,6 +256,7 @@ CREATE TABLE IF NOT EXISTS alertas_orcamento (
     mensagem TEXT NOT NULL,
     FOREIGN KEY (id_direcao) REFERENCES direcao(id_direcao)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 -- ============================================
 -- TRIGGERS
@@ -1303,8 +1298,8 @@ ORDER BY ano DESC, mes DESC;
 -- 13. CONSULTA: Resumo Financeiro Trimestral Consolidado
 -- ============================================
 /*
-mostra todas as movimentações financeiras
-dos últimos 3 meses, separando por tipo de conta e calculando saldos.
+mostra todas as movimentações financeiras dos últimos 3 meses, 
+separando por tipo de conta e calculando saldos.
 
 Agrupa lançamentos aprovados por tipo de conta, somando entradas e saídas
 separadamente. Calcula margem líquida e percentual de cada categoria sobre
@@ -1348,14 +1343,11 @@ ORDER BY
     saldo_liquido DESC;
 
 -- ============================================
--- 14. CONSULTA: Alertas de Orçamento Registrados
+-- 14. CONSULTA: Alerta de Orçamento critico
 -- ============================================
 /*
-Lista todos os alertas de orçamento crítico registrados automaticamente
-quando o consumo de orçamento atinge 80% ou mais.
-
-Mostra o histórico completo de alertas, permitindo monitorar quando
-departamentos chegaram próximos do limite orçamentário.
+alertas de orçamento crítico são registrados quando o orçamento 
+atinge 80% ou mais naquele mês.
 */
 SELECT 
     a.id_alerta,
