@@ -9,20 +9,12 @@ from tkinter import ttk, messagebox
 import mysql.connector
 from mysql.connector import Error
 
-# ============================================
-# CONFIGURAÇÕES DO BANCO DE DADOS
-# ============================================
-
 DB_CONFIG = {
     'host': 'localhost',
     'database': 'gestao_clube',
     'user': 'root',
     'password': '2003'
 }
-
-# ============================================
-# CLASSE DE CONEXÃO COM BANCO DE DADOS
-# ============================================
 
 class DatabaseManager:
     """Gerencia conexões e consultas ao banco de dados"""
@@ -55,10 +47,8 @@ class DatabaseManager:
             cursor = self.connection.cursor()
             cursor.execute(query)
             
-            # Pegar nomes das colunas
             columns = [desc[0] for desc in cursor.description]
             
-            # Pegar dados
             data = cursor.fetchall()
             
             cursor.close()
@@ -68,10 +58,6 @@ class DatabaseManager:
         except Error as e:
             messagebox.showerror("Erro na Consulta", f"Erro ao executar consulta:\n{e}")
             return None, None
-
-# ============================================
-# QUERIES DO SISTEMA (SEM AS 6 VIEWS)
-# ============================================
 
 QUERIES = {
     "1. Lançamentos Detalhados com Responsáveis": """
@@ -191,7 +177,6 @@ QUERIES = {
     """
 }
 
-# Views disponíveis para a Direção (excluindo dados_publicos e dados_privados)
 VIEWS_DIRECAO = {
     "Resumo do Elenco": "SELECT * FROM resumo_elenco;",
     "Resumo dos Funcionários": "SELECT * FROM resumo_funcionarios;",
@@ -201,41 +186,31 @@ VIEWS_DIRECAO = {
     "Média de Folha Anual": "SELECT * FROM media_folha_anual;"
 }
 
-# ============================================
-# APLICAÇÃO PRINCIPAL
-# ============================================
-
 class AplicacaoPrincipal:
     """Aplicação principal com janela única em tela cheia"""
     
     def __init__(self, root):
         self.root = root
-        self.root.title("Sistema de Gestão do Clube Esportivo")
+        self.root.title("Sistema de Gestão do Clube Esportivo Pelotas")
         
-        # Configurar tela cheia
         self.root.state('zoomed')  # Windows
-        # self.root.attributes('-zoomed', True)  # Linux
-        # self.root.attributes('-fullscreen', True)  # Mac
         
         self.root.configure(bg='#1e3a5f')
         
-        # Database Manager
         self.db = DatabaseManager(DB_CONFIG)
         
-        # Testar conexão
+        self.origem_consulta = None
+        
         if not self.db.connect():
             messagebox.showerror("Erro", "Não foi possível conectar ao banco de dados!")
             self.root.destroy()
             return
         
-        # Container para todos os frames
         self.container = tk.Frame(self.root, bg='#1e3a5f')
         self.container.pack(fill='both', expand=True)
         
-        # Dicionário de frames
         self.frames = {}
         
-        # Criar frame inicial
         self.mostrar_tela_inicial()
     
     def limpar_container(self):
@@ -247,21 +222,19 @@ class AplicacaoPrincipal:
         """Mostra a tela inicial com escolha de perfil"""
         self.limpar_container()
         
-        # Frame principal
         main_frame = tk.Frame(self.container, bg='#1e3a5f')
         main_frame.pack(expand=True)
         
-        # Título
         titulo = tk.Label(
             main_frame,
-            text="Sistema de Gestão\nClube Esportivo",
+            text="Sistema de Gestão\nClube Esportivo Pelotas",
             font=('Arial', 32, 'bold'),
             bg='#1e3a5f',
             fg='white'
         )
         titulo.pack(pady=(0, 50))
         
-        # Subtítulo
+        
         subtitulo = tk.Label(
             main_frame,
             text="Selecione seu perfil de acesso:",
@@ -271,7 +244,6 @@ class AplicacaoPrincipal:
         )
         subtitulo.pack(pady=(0, 40))
         
-        # Botões
         btn_style = {
             'font': ('Arial', 16, 'bold'),
             'width': 25,
@@ -317,11 +289,9 @@ class AplicacaoPrincipal:
         """Mostra a tela da Direção"""
         self.limpar_container()
         
-        # Frame principal
         main_frame = tk.Frame(self.container, bg='#1e3a5f')
         main_frame.pack(expand=True)
         
-        # Título
         titulo = tk.Label(
             main_frame,
             text="Painel da Direção",
@@ -331,7 +301,6 @@ class AplicacaoPrincipal:
         )
         titulo.pack(pady=(0, 40))
         
-        # Subtítulo
         subtitulo = tk.Label(
             main_frame,
             text="Escolha uma opção:",
@@ -341,7 +310,6 @@ class AplicacaoPrincipal:
         )
         subtitulo.pack(pady=(0, 35))
         
-        # Botões
         btn_style = {
             'font': ('Arial', 15, 'bold'),
             'width': 30,
@@ -385,9 +353,11 @@ class AplicacaoPrincipal:
     
     def mostrar_tela_conselheiro(self):
         """Mostra a tela do Conselheiro com dados privados"""
+        self.origem_consulta = 'perfil'
+
         query = "SELECT * FROM dados_privados;"
         columns, data = self.db.execute_query(query)
-        
+
         if columns and data:
             self.mostrar_resultado(columns, data, "Conselheiro - Dados Privados Detalhados")
         else:
@@ -395,9 +365,11 @@ class AplicacaoPrincipal:
     
     def mostrar_tela_socio(self):
         """Mostra a tela do Sócio com dados públicos"""
+        self.origem_consulta = 'perfil'
+
         query = "SELECT * FROM dados_publicos;"
         columns, data = self.db.execute_query(query)
-        
+
         if columns and data:
             self.mostrar_resultado(columns, data, "Sócio - Dados Públicos Consolidados")
         else:
@@ -407,11 +379,14 @@ class AplicacaoPrincipal:
         """Mostra lista de consultas disponíveis"""
         self.limpar_container()
         
-        # Frame principal
+        if consultas_dict == QUERIES:
+            self.origem_consulta = 'queries'
+        else:
+            self.origem_consulta = 'views'
+        
         main_frame = tk.Frame(self.container, bg='#f0f0f0')
         main_frame.pack(fill='both', expand=True, padx=20, pady=20)
         
-        # Título
         titulo = tk.Label(
             main_frame,
             text="Selecione uma Consulta",
@@ -421,15 +396,12 @@ class AplicacaoPrincipal:
         )
         titulo.pack(pady=(10, 30))
         
-        # Frame para a lista
         list_frame = tk.Frame(main_frame, bg='white', relief='sunken', bd=2)
         list_frame.pack(fill='both', expand=True, pady=(0, 20))
         
-        # Scrollbar
         scrollbar = tk.Scrollbar(list_frame)
         scrollbar.pack(side='right', fill='y')
         
-        # Listbox
         listbox = tk.Listbox(
             list_frame,
             font=('Arial', 13),
@@ -442,11 +414,9 @@ class AplicacaoPrincipal:
         listbox.pack(side='left', fill='both', expand=True, padx=5, pady=5)
         scrollbar.config(command=listbox.yview)
         
-        # Adicionar consultas à listbox
         for consulta in consultas_dict.keys():
             listbox.insert('end', consulta)
         
-        # Função para executar consulta
         def executar():
             selecao = listbox.curselection()
             if not selecao:
@@ -463,14 +433,11 @@ class AplicacaoPrincipal:
             else:
                 messagebox.showinfo("Informação", "Nenhum dado encontrado para esta consulta!")
         
-        # Bind duplo clique
         listbox.bind('<Double-Button-1>', lambda e: executar())
         
-        # Frame para botões
         btn_frame = tk.Frame(main_frame, bg='#f0f0f0')
         btn_frame.pack(fill='x', pady=10)
         
-        # Botão executar
         btn_executar = tk.Button(
             btn_frame,
             text="🔍 Executar Consulta",
@@ -484,15 +451,14 @@ class AplicacaoPrincipal:
         )
         btn_executar.pack(side='left', padx=10)
         
-        # Botão voltar
         btn_voltar = tk.Button(
             btn_frame,
-            text="⬅ Voltar",
+            text="⬅ Voltar para Direção",
             command=self.mostrar_tela_direcao,
             font=('Arial', 14, 'bold'),
             bg='#f44336',
             fg='white',
-            width=20,
+            width=22,
             height=2,
             cursor='hand2'
         )
@@ -502,11 +468,9 @@ class AplicacaoPrincipal:
         """Mostra o resultado de uma consulta"""
         self.limpar_container()
         
-        # Frame principal
         main_frame = tk.Frame(self.container)
         main_frame.pack(fill='both', expand=True, padx=10, pady=10)
         
-        # Título
         titulo_label = tk.Label(
             main_frame,
             text=titulo,
@@ -517,15 +481,12 @@ class AplicacaoPrincipal:
         )
         titulo_label.pack(fill='x')
         
-        # Frame para a tabela
         tree_frame = tk.Frame(main_frame)
         tree_frame.pack(fill='both', expand=True, pady=10)
         
-        # Scrollbars
         scroll_y = tk.Scrollbar(tree_frame, orient='vertical')
         scroll_x = tk.Scrollbar(tree_frame, orient='horizontal')
         
-        # Treeview
         tree = ttk.Treeview(
             tree_frame,
             columns=columns,
@@ -540,16 +501,13 @@ class AplicacaoPrincipal:
         scroll_x.pack(side='bottom', fill='x')
         tree.pack(side='left', fill='both', expand=True)
         
-        # Configurar colunas
         for col in columns:
             tree.heading(col, text=col)
             tree.column(col, width=150, anchor='center')
         
-        # Inserir dados
         for row in data:
             tree.insert('', 'end', values=row)
         
-        # Estilo alternado nas linhas
         tree.tag_configure('oddrow', background='#f9f9f9')
         tree.tag_configure('evenrow', background='#ffffff')
         
@@ -559,11 +517,9 @@ class AplicacaoPrincipal:
             else:
                 tree.item(item, tags=('oddrow',))
         
-        # Frame inferior
         bottom_frame = tk.Frame(main_frame, bg='#f0f0f0')
         bottom_frame.pack(fill='x', pady=(10, 0))
         
-        # Label com total de registros
         total_label = tk.Label(
             bottom_frame,
             text=f"Total de registros: {len(data)}",
@@ -573,26 +529,30 @@ class AplicacaoPrincipal:
         )
         total_label.pack(side='left', padx=20)
         
-        # Botão voltar
+        def voltar_lista():
+            if self.origem_consulta == 'queries':
+                self.mostrar_lista_consultas(QUERIES)
+            elif self.origem_consulta == 'views':
+                self.mostrar_lista_consultas(VIEWS_DIRECAO)
+            elif self.origem_consulta == 'perfil':
+                self.mostrar_tela_inicial()
+            else:
+                self.mostrar_tela_inicial()
+        
         btn_voltar = tk.Button(
             bottom_frame,
-            text="⬅ Voltar",
-            command=self.mostrar_tela_inicial,
+            text="⬅ Voltar para Lista",
+            command=voltar_lista,
             font=('Arial', 13, 'bold'),
             bg='#f44336',
             fg='white',
-            width=15,
+            width=18,
             height=2,
             cursor='hand2'
         )
         btn_voltar.pack(side='right', padx=20)
 
-# ============================================
-# FUNÇÃO PRINCIPAL
-# ============================================
-
 def main():
-    """Função principal do sistema"""
     root = tk.Tk()
     app = AplicacaoPrincipal(root)
     root.mainloop()
