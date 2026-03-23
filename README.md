@@ -1,4 +1,4 @@
-# Gestor-Esportivo
+# Sistema de Contabilidade Esportiva
 Sistema gerenciador de contas que simula movimentações de um clube esportivo.
 
 <div align="center">
@@ -9,9 +9,7 @@ Sistema gerenciador de contas que simula movimentações de um clube esportivo.
 
 ---
 
-# Sistema de Gestão Financeira — Clube Esportivo
-
-Sistema de banco de dados relacional desenvolvido para centralizar e controlar as operações financeiras e administrativas de um clube esportivo, abrangendo elenco, funcionários e patrimônio.
+Banco de dados relacional desenvolvido para centralizar e controlar as operações financeiras e administrativas de um clube esportivo, abrangendo elenco, funcionários e patrimônio.
 
 ---
 
